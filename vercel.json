@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "api/images.ts",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/images",
+            "dest": "/api/images.ts",
+            "methods": [
+                "GET",
+                "OPTIONS"
+            ]
+        }
+    ]
+}
