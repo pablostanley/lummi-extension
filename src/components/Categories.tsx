@@ -1,50 +1,44 @@
-import { FC } from 'react';
-import * as Switch from '@radix-ui/react-switch';
+import { Switch } from '@/components/ui/switch';
 
-interface CategoriesProps {
-    categories: { [key: string]: boolean };
-    onCategoryChange: (category: string) => void;
+interface Category {
+    id: string;
+    name: string;
+    enabled: boolean;
 }
 
-// Make the component more explicit
-export const Categories: FC<CategoriesProps> = ({ categories, onCategoryChange }) => {
-    // Log when the component renders
-    console.log('Categories component rendering with:', Object.keys(categories).length, 'categories');
+interface CategoriesProps {
+    categories: Category[];
+    onToggle: (id: string) => void;
+}
 
-    // Force evaluation
-    if (!categories || typeof onCategoryChange !== 'function') {
-        console.error('Invalid props provided to Categories component');
+export function Categories({ categories, onToggle }: CategoriesProps) {
+    if (!categories || categories.length === 0) {
         return null;
     }
 
+    console.log('Rendering categories:', categories.length);
+
     return (
-        <div className="w-full">
-            <h3 className="text-sm font-medium mb-4" id="categories-heading">Image Categories</h3>
-            <div className="grid grid-cols-2 gap-3">
-                {Object.entries(categories).map(([category, enabled]) => (
-                    <div
-                        key={category}
-                        className="flex items-center justify-between bg-zinc-800/50 rounded-lg p-3"
-                    >
-                        <label
-                            htmlFor={category}
-                            className="text-base capitalize"
-                        >
-                            {category}
-                        </label>
-                        <Switch.Root
-                            id={category}
-                            checked={enabled}
-                            onCheckedChange={() => onCategoryChange(category)}
-                            className="w-11 h-6 bg-zinc-700 rounded-full relative data-[state=checked]:bg-blue-600"
-                        >
-                            <Switch.Thumb
-                                className="block w-5 h-5 bg-white rounded-full transition-transform duration-100 translate-x-0.5 will-change-transform data-[state=checked]:translate-x-[22px]"
-                            />
-                        </Switch.Root>
-                    </div>
-                ))}
-            </div>
+        <div
+            className="categories-grid w-full"
+            style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+                gap: '0.75rem'
+            }}
+        >
+            {categories.map((category) => (
+                <div
+                    key={category.id}
+                    className="flex items-center justify-between rounded-lg bg-zinc-800/50 p-3 hover:bg-white/10 transition-colors"
+                >
+                    <span className="text-white/80">{category.name}</span>
+                    <Switch
+                        checked={category.enabled}
+                        onCheckedChange={() => onToggle(category.id)}
+                    />
+                </div>
+            ))}
         </div>
     );
-}; 
+} 

@@ -437,12 +437,12 @@ const App: React.FC = () => {
         setIsEditingLinks(false);
     };
 
-    const handleCategoryChange = (category: string): void => {
+    const handleCategoryToggle = (categoryId: string) => {
         setSettings(prev => ({
             ...prev,
             categories: {
                 ...prev.categories,
-                [category]: !prev.categories[category]
+                [categoryId]: !prev.categories[categoryId]
             }
         }));
     };
@@ -642,8 +642,12 @@ const App: React.FC = () => {
 
                                 {/* Image Categories */}
                                 <Categories
-                                    categories={settings.categories}
-                                    onCategoryChange={handleCategoryChange}
+                                    categories={Object.entries(settings.categories).map(([id, enabled]) => ({
+                                        id,
+                                        name: id,
+                                        enabled
+                                    }))}
+                                    onToggle={handleCategoryToggle}
                                 />
 
                                 {/* Favorite Links Section */}
