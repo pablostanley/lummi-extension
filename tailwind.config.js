@@ -9,11 +9,11 @@ export default {
     'grid',
     'grid-cols-2',
     'gap-3',
-    '!grid',
-    '!grid-cols-2',
-    '!gap-3',
-    '!space-y-0',
-    '!w-full'
+    'w-full',
+    'flex',
+    'items-center',
+    'justify-between',
+    'space-y-2'
   ],
   theme: {
     container: {
@@ -37,6 +37,9 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      gridTemplateColumns: {
+        '2': 'repeat(2, minmax(0, 1fr))',
       },
     },
   },

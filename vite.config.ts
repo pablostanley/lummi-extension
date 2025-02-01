@@ -110,8 +110,11 @@ export default defineConfig({
         modulePreload: {
             polyfill: false
         },
-        cssCodeSplit: false,
-        minify: false
+        cssCodeSplit: true,
+        minify: 'terser'
+    },
+    css: {
+        postcss: './postcss.config.cjs'
     },
     base: ''
 }) 
