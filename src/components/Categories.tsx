@@ -18,9 +18,9 @@ export const Categories: FC<CategoriesProps> = ({ categories, onCategoryChange }
     }
 
     return (
-        <div className="categories-section !space-y-0">
+        <div className="w-full">
             <h3 className="text-sm font-medium mb-4" id="categories-heading">Image Categories</h3>
-            <div className="!grid !grid-cols-2 !gap-3 !w-full">
+            <div className="grid grid-cols-2 gap-3">
                 {Object.entries(categories).map(([category, enabled]) => (
                     <div
                         key={category}
