@@ -4,7 +4,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Enable CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.setHeader('Content-Type', 'application/json');
 
     // Handle preflight request
     if (req.method === 'OPTIONS') {
@@ -24,23 +25,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const response = await fetch(apiUrl, {
             headers: {
-                'Authorization': `Bearer ${process.env.LUMMI_API_KEY}`
+                'Authorization': `Bearer ${process.env.LUMMI_API_KEY}`,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             }
         });
 
         if (!response.ok) {
-            throw new Error(`Lummi API error: ${response.status}`);
+            const errorText = await response.text();
+            console.error('Lummi API error:', {
+                status: response.status,
+                body: errorText
+            });
+            return res.status(response.status).json({
+                error: 'Lummi API error',
+                status: response.status,
+                details: errorText
+            });
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType?.includes('application/json')) {
+            const text = await response.text();
+            console.error('Non-JSON response from Lummi API:', {
+                contentType,
+                text: text.substring(0, 200)
+            });
+            return res.status(500).json({
+                error: 'Invalid response from Lummi API',
+                details: 'Response was not JSON'
+            });
         }
 
         const data = await response.json();
+
+        // Validate the response structure
+        if (!data || !Array.isArray(data.data)) {
+            console.error('Invalid response structure from Lummi API:', data);
+            return res.status(500).json({
+                error: 'Invalid response structure',
+                details: 'Response did not contain valid data array'
+            });
+        }
+
         console.log('Received response from Lummi API:', {
             query,
-            totalResults: data.data?.length || 0
+            totalResults: data.data.length
         });
 
         return res.status(200).json(data);
     } catch (error) {
-        console.error('Error in search API:', error);
-        return res.status(500).json({ error: 'Failed to fetch images from Lummi API' });
+        console.error('Error in search handler:', error);
+        return res.status(500).json({
+            error: 'Internal server error',
+            details: error instanceof Error ? error.message : 'Unknown error'
+        });
     }
 } 

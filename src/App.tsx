@@ -228,22 +228,27 @@ const App: React.FC = () => {
             const apiUrl = `https://lummi-extension-final.vercel.app/api/search?query=${encodeURIComponent(queryToUse)}`;
             console.log('Using API URL:', apiUrl);
 
-            const response = await fetch(apiUrl);
-            const contentType = response.headers.get('content-type');
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
 
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error('API Error Response:', {
                     status: response.status,
-                    contentType,
+                    contentType: response.headers.get('content-type'),
                     body: errorText
                 });
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
+            const contentType = response.headers.get('content-type');
             if (!contentType?.includes('application/json')) {
                 const text = await response.text();
-                console.error('Unexpected response type:', {
+                console.error('Non-JSON response received:', {
                     contentType,
                     text: text.substring(0, 200) // Log first 200 chars
                 });
@@ -251,6 +256,13 @@ const App: React.FC = () => {
             }
 
             const data = await response.json();
+
+            // Validate the response data structure
+            if (!data || !Array.isArray(data.data) || data.data.length === 0) {
+                console.error('Invalid response structure:', data);
+                throw new Error('Invalid response structure');
+            }
+
             console.log('Search response for query:', queryToUse, {
                 totalResults: data.data.length,
                 firstImageDescription: data.data[0].description
@@ -259,6 +271,12 @@ const App: React.FC = () => {
             // Randomly select one image from the results array
             const randomIndex = Math.floor(Math.random() * data.data.length);
             const selectedImage = data.data[randomIndex];
+
+            // Validate the selected image has required properties
+            if (!selectedImage.url) {
+                console.error('Selected image missing required properties:', selectedImage);
+                throw new Error('Invalid image data');
+            }
 
             console.log('Using randomly selected image for query:', queryToUse, {
                 index: randomIndex,
@@ -285,6 +303,22 @@ const App: React.FC = () => {
             });
         } catch (error) {
             console.error('Error fetching image:', error);
+            // Set a fallback image
+            setCurrentImage({
+                url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=80',
+                blurhash: '',
+                description: 'Beautiful mountain landscape',
+                attribution: {
+                    name: 'Unsplash',
+                    username: 'unsplash',
+                    attributionUrl: 'https://unsplash.com'
+                }
+            });
+            setImageAttribution({
+                name: 'Unsplash',
+                username: 'unsplash',
+                attributionUrl: 'https://unsplash.com'
+            });
         } finally {
             setIsImageLoading(false);
         }

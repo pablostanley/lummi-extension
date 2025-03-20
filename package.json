@@ -9,7 +9,8 @@
         "vercel-build": "npm run build",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
         "preview": "vite preview",
-        "package": "npm run build && mkdir -p extension && cp -r dist/* icons manifest.json extension/ && cd extension && zip -r ../lummi-new-tab-extension.zip *"
+        "package": "npm run build && mkdir -p extension && cp -r dist/* icons manifest.json extension/ && cd extension && zip -r ../lummi-new-tab-extension.zip *",
+        "dev:extension": "npm run build && rm -rf test-extension && mkdir -p test-extension && cp -r dist/* icons manifest.json test-extension/ && echo '\nExtension ready for testing! Load the test-extension folder in chrome://extensions/'"
     },
     "dependencies": {
         "@radix-ui/react-dialog": "^1.1.4",
