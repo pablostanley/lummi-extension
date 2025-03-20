@@ -8,7 +8,8 @@
         "build": "tsc && vite build",
         "vercel-build": "npm run build",
         "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "package": "npm run build && mkdir -p extension && cp -r dist/* icons manifest.json extension/ && cd extension && zip -r ../lummi-new-tab-extension.zip *"
     },
     "dependencies": {
         "@radix-ui/react-dialog": "^1.1.4",

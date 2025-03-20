@@ -229,9 +229,25 @@ const App: React.FC = () => {
             console.log('Using API URL:', apiUrl);
 
             const response = await fetch(apiUrl);
+            const contentType = response.headers.get('content-type');
 
             if (!response.ok) {
+                const errorText = await response.text();
+                console.error('API Error Response:', {
+                    status: response.status,
+                    contentType,
+                    body: errorText
+                });
                 throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            if (!contentType?.includes('application/json')) {
+                const text = await response.text();
+                console.error('Unexpected response type:', {
+                    contentType,
+                    text: text.substring(0, 200) // Log first 200 chars
+                });
+                throw new Error('Response is not JSON');
             }
 
             const data = await response.json();

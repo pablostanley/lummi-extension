@@ -7,7 +7,7 @@
         "storage"
     ],
     "host_permissions": [
-        "https://lummi-extension-final.vercel.app/*",
+        "https://*.vercel.app/*",
         "https://suggestqueries.google.com/*",
         "https://cdn.brandfetch.io/*",
         "https://i.imgur.com/*",
@@ -17,7 +17,7 @@
         "newtab": "index.html"
     },
     "content_security_policy": {
-        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://lummi-extension-final.vercel.app https://suggestqueries.google.com https://cdn.brandfetch.io; img-src 'self' https://cdn.brandfetch.io https://i.imgur.com https://assets.lummi.ai data:;"
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://suggestqueries.google.com https://cdn.brandfetch.io https://assets.lummi.ai; img-src 'self' https://cdn.brandfetch.io https://i.imgur.com https://assets.lummi.ai data:;"
     },
     "web_accessible_resources": [
         {

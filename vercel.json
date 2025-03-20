@@ -2,7 +2,7 @@
     "version": 2,
     "builds": [
         {
-            "src": "api/images.ts",
+            "src": "api/**/*.ts",
             "use": "@vercel/node"
         },
         {
@@ -15,16 +15,19 @@
     ],
     "routes": [
         {
-            "src": "/api/images",
-            "dest": "/api/images.ts",
+            "src": "/api/(.*)",
+            "dest": "/api/$1",
             "methods": [
                 "GET",
                 "OPTIONS"
             ]
         },
         {
+            "handle": "filesystem"
+        },
+        {
             "src": "/(.*)",
-            "dest": "/"
+            "dest": "/index.html"
         }
     ]
 }
