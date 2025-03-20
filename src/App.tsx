@@ -204,7 +204,7 @@ const App: React.FC = () => {
     const [isEditingLinks, setIsEditingLinks] = useState(false);
     const [isImageLoading, setIsImageLoading] = useState(false);
 
-    // Update the fetchImage function to use the absolute URL
+    // Update the fetchImage function to use the Lummi API directly
     const fetchImage = async (selectedQuery: string) => {
         setIsImageLoading(true);
         try {
@@ -225,7 +225,8 @@ const App: React.FC = () => {
             const queryToUse = selectedQuery || allQueries[Math.floor(Math.random() * allQueries.length)];
 
             console.log('Making search request for query:', queryToUse);
-            const apiUrl = `https://lummi-extension-final.vercel.app/api/search?query=${encodeURIComponent(queryToUse)}`;
+            // Use our proxy API endpoint instead of directly accessing Lummi API
+            const apiUrl = `/api/search?query=${encodeURIComponent(queryToUse)}`;
             console.log('Using API URL:', apiUrl);
 
             const response = await fetch(apiUrl, {
@@ -410,11 +411,6 @@ const App: React.FC = () => {
         }
     }, [isEditingLinks, settings.favoriteLinks]);
 
-    // Handle removing a link
-    const handleRemoveLink = (id: string) => {
-        setEditingLinks(editingLinks.filter(link => link.id !== id));
-    };
-
     // Handle updating a link
     const handleUpdateLink = async (id: string, field: 'title' | 'url', value: string) => {
         const updatedLinks = [...editingLinks];
@@ -454,37 +450,9 @@ const App: React.FC = () => {
         setEditingLinks(updatedLinks);
     };
 
-    // Handle saving links
-    const handleSaveLinks = () => {
-        const processedLinks = editingLinks.map(link => {
-            if (link.url) {
-                const domain = getMainDomain(link.url);
-                console.log('Processing link domain:', domain);
-
-                // Special case for Lummi domains
-                if (domain && domain.includes('lummi.ai')) {
-                    return {
-                        ...link,
-                        icon: 'https://i.imgur.com/BOTZwfi.png',
-                        title: link.title || 'Lummi'
-                    };
-                }
-
-                return {
-                    ...link,
-                    icon: domain ? `https://cdn.brandfetch.io/${domain}/w/400/h/400?c=1idqPQHGdjsMFy8NwQT` : null,
-                    title: link.title || domain
-                };
-            }
-            return link;
-        });
-
-        console.log('Saving links with icons:', processedLinks); // Debug log
-        setSettings(prev => ({
-            ...prev,
-            favoriteLinks: processedLinks.filter(link => link.url && link.url.trim() !== '')
-        }));
-        setIsEditingLinks(false);
+    // Handle removing a link
+    const handleRemoveLink = (id: string) => {
+        setEditingLinks(editingLinks.filter(link => link.id !== id));
     };
 
     const handleCategoryToggle = (categoryId: string) => {
@@ -714,6 +682,14 @@ const App: React.FC = () => {
                                                         icon: null
                                                     };
                                                     setEditingLinks([...editingLinks, newLink]);
+                                                    // Schedule focus and scroll after DOM update
+                                                    setTimeout(() => {
+                                                        const newLinkEl = document.getElementById(`link-title-${newLink.id}`);
+                                                        if (newLinkEl) {
+                                                            newLinkEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                            newLinkEl.focus();
+                                                        }
+                                                    }, 100);
                                                 }}
                                                 className="p-1 rounded-full hover:bg-white/10 text-white/60 hover:text-white transition-colors"
                                             >
@@ -726,6 +702,7 @@ const App: React.FC = () => {
                                             <div key={link.id} className="flex items-start space-x-2 p-3 rounded-lg bg-zinc-800/50">
                                                 <div className="flex-1 space-y-2">
                                                     <input
+                                                        id={`link-title-${link.id}`}
                                                         type="text"
                                                         value={link.title}
                                                         onChange={(e) => handleUpdateLink(link.id, 'title', e.target.value)}
@@ -733,6 +710,7 @@ const App: React.FC = () => {
                                                         className="w-full px-3 py-2 bg-zinc-800 rounded text-sm"
                                                     />
                                                     <input
+                                                        id={`link-url-${link.id}`}
                                                         type="url"
                                                         value={link.url}
                                                         onChange={(e) => handleUpdateLink(link.id, 'url', e.target.value)}
@@ -748,6 +726,33 @@ const App: React.FC = () => {
                                                 </button>
                                             </div>
                                         ))}
+
+                                        {/* Secondary Add Link Button at the bottom */}
+                                        {Array.isArray(editingLinks) && editingLinks.length < 10 && (
+                                            <button
+                                                onClick={() => {
+                                                    const newLink = {
+                                                        id: Math.random().toString(36).substr(2, 9),
+                                                        url: '',
+                                                        title: '',
+                                                        icon: null
+                                                    };
+                                                    setEditingLinks([...editingLinks, newLink]);
+                                                    // Schedule focus and scroll after DOM update
+                                                    setTimeout(() => {
+                                                        const newLinkEl = document.getElementById(`link-title-${newLink.id}`);
+                                                        if (newLinkEl) {
+                                                            newLinkEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                            newLinkEl.focus();
+                                                        }
+                                                    }, 100);
+                                                }}
+                                                className="w-full py-2 px-4 rounded-lg border border-dashed border-white/20 text-white/60 hover:text-white hover:border-white/40 transition-colors flex items-center justify-center"
+                                            >
+                                                <Plus className="w-4 h-4 mr-2" />
+                                                Add New Link
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -760,7 +765,48 @@ const App: React.FC = () => {
                                     Cancel
                                 </Dialog.Close>
                                 <button
-                                    onClick={handleSaveLinks}
+                                    onClick={() => {
+                                        // Filter out invalid links before saving
+                                        const validLinks = editingLinks.filter(link => {
+                                            // Check if URL is present and valid
+                                            if (!link.url || link.url.trim() === '') return false;
+
+                                            try {
+                                                new URL(link.url); // This will throw an error for invalid URLs
+                                                return true;
+                                            } catch (error) {
+                                                console.error('Invalid URL:', link.url);
+                                                return false;
+                                            }
+                                        });
+
+                                        const processedLinks = validLinks.map(link => {
+                                            const domain = getMainDomain(link.url);
+                                            console.log('Processing link domain:', domain);
+
+                                            // Special case for Lummi domains
+                                            if (domain && domain.includes('lummi.ai')) {
+                                                return {
+                                                    ...link,
+                                                    icon: 'https://i.imgur.com/BOTZwfi.png',
+                                                    title: link.title || 'Lummi'
+                                                };
+                                            }
+
+                                            return {
+                                                ...link,
+                                                icon: domain ? `https://cdn.brandfetch.io/${domain}/w/400/h/400?c=1idqPQHGdjsMFy8NwQT` : null,
+                                                title: link.title || domain
+                                            };
+                                        });
+
+                                        console.log('Saving links with icons:', processedLinks); // Debug log
+                                        setSettings(prev => ({
+                                            ...prev,
+                                            favoriteLinks: processedLinks
+                                        }));
+                                        setIsEditingLinks(false);
+                                    }}
                                     className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                                 >
                                     Save Changes

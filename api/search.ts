@@ -20,12 +20,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
+        // Check if API key is available
+        const apiKey = process.env.LUMMI_API_KEY;
+        if (!apiKey) {
+            console.error('LUMMI_API_KEY is not defined in environment variables');
+            return res.status(500).json({
+                error: 'Server configuration error',
+                details: 'API key is missing'
+            });
+        }
+
         console.log('Making search request for query:', query);
-        const apiUrl = `https://api.lummi.ai/v1/images/search?query=${encodeURIComponent(query as string)}`;
+        const apiUrl = `https://api.lummi.ai/v1/images/search?query=${encodeURIComponent(query as string)}&orientation=horizontal`;
+        console.log('Using Lummi API URL:', apiUrl);
 
         const response = await fetch(apiUrl, {
             headers: {
-                'Authorization': `Bearer ${process.env.LUMMI_API_KEY}`,
+                'Authorization': `Bearer ${apiKey}`,
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             }

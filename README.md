@@ -27,6 +27,19 @@ A beautiful Chrome extension that replaces your new tab page with stunning AI-ge
 5. Click "Load unpacked" and select the extracted folder
 6. The extension should now be installed and active
 
+## Environment Variables
+
+This extension uses environment variables to securely store API keys. When deploying to Vercel, you need to set up the following environment variable:
+
+- `LUMMI_API_KEY`: Your Lummi API key (obtained from [Lummi API Portal](https://www.lummi.ai/portal/developer))
+
+To set up environment variables in Vercel:
+
+1. Go to your project in the Vercel dashboard
+2. Navigate to "Settings" > "Environment Variables"
+3. Add the environment variables with their respective values
+4. Redeploy your project
+
 ## Usage
 
 - Open a new tab to see your beautiful Lummi new tab page
@@ -58,17 +71,22 @@ A beautiful Chrome extension that replaces your new tab page with stunning AI-ge
    npm install
    ```
 
-3. Start the development server:
+3. Create a `.env.local` file in the root directory with your Lummi API key:
+   ```
+   LUMMI_API_KEY=your_api_key_here
+   ```
+
+4. Start the development server:
    ```
    npm run dev
    ```
 
-4. Build the extension:
+5. Build the extension:
    ```
    npm run build
    ```
 
-5. Package the extension for distribution:
+6. Package the extension for distribution:
    ```
    npm run package
    ```
